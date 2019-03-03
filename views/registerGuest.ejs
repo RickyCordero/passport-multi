@@ -1,0 +1,26 @@
+<div class="row mt-5">
+    <div class="col-md-6 m-auto">
+        <div class="card card-body">
+            <h1 class="text-center mb-3">
+                <i class="fas fa-user-plus"></i> Register guest
+            </h1>
+            <% include ./partials/messages %>
+            <form action="/guest/register" method="POST">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="name" id="name" name="name" class="form-control" placeholder="Enter Name"
+                        value="<%= typeof name != 'undefined' ? name : '' %>" />
+                </div>
+                <div class="form-group">
+                    <label for="pin">Pin</label>
+                    <input type="pin" id="pin" name="pin" class="form-control" placeholder="Enter Pin"
+                        value="<%= typeof pin != 'undefined' ? pin : '' %>" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Register
+                </button>
+            </form>
+            <p class="lead mt-4">Already signed up for a game? <a href="/guest/join">Join</a></p>
+        </div>
+    </div>
+</div>

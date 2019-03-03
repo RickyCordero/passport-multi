@@ -1,0 +1,18 @@
+<div class="row mt-5">
+    <div class="col-md-6 m-auto">
+        <div class="card card-body">
+            <h1 class="text-center mb-3"><i class="fas fa-plus"></i> Create game</h1>
+            <% include ./partials/messages %>
+            <form action="/users/createGame" method="POST">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="name" id="name" name="name" class="form-control" placeholder="Enter Name" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create</button>
+            </form>
+            <p class="lead mt-4">
+                Go back <a href="/users/dashboard">Click here to return to the dashboard</a>
+            </p>
+        </div>
+    </div>
+</div>

@@ -1,14 +1,21 @@
 <div class="row mt-5">
     <div class="col-md-6 m-auto">
         <div class="card card-body text-center">
-            <h1><i class="fab fa-node-js fa-3x"></i></h1>
+            <h1><i class="fas fa-user-alt"></i></h1>
             <p>Create an account or login</p>
-            <a href="/users/register" class="btn btn-primary btn-block mb-2">
-                Register
-            </a>
-            <a href="/users/login" class="btn btn-secondary btn-black">
-                Login
-            </a>
+            <% if (!req.isAuthenticated()) { %>
+                <a href="/users/register" class="btn btn-primary btn-block mb-2">Register</a>
+                <a href="/users/login" class="btn btn-secondary btn-black mb-2">Login</a>
+                <a href="/guest/join" class="btn btn-secondary btn-black mb-2">Join a party</a>
+            <% } else { %>
+                <% if (req.user.role == "user") { %>
+                    <a href="/users/logout" class="btn btn-secondary btn-black mb-2">Logout</a>
+                    <a href="/dashboard" class="btn btn-secondary btn-black mb-2">Go to dashboard</a>
+                <% } else if(req.user.role == "guest") { %>
+                    <a href="/guest/leave" class="btn btn-secondary btn-black mb-2">Leave party</a>
+                    <a href="/dashboard" class="btn btn-secondary btn-black">Go to party</a>
+                <% } %>
+            <% } %>
         </div>
     </div>
 </div>

@@ -2,8 +2,12 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
+const _ = require('lodash');
+
+const { ensureUserAuthenticated } = require('../config/auth');
 
 // User model
+const Game = require('../models/Game');
 const User = require('../models/User');
 
 // Login page
@@ -72,22 +76,125 @@ router.post('/register', (req, res) => {
     }
 });
 
+// // Dashboard Page
+// router.get('/dashboard', ensureUserAuthenticated, (req, res) => {
+//     res.render('dashboard', {
+//         name: req.user.name
+//     });
+// });
 
-// Login handle
+// Create game
+router.get('/createGame', ensureUserAuthenticated, (req, res) => {
+    res.render('createGame');
+});
+
+/**
+ * Determins if a game name is valid
+ * @param {String} name - The name to be checked
+ */
+const isValidGameName = name => {
+    return true;
+}
+
+// Create game handler
+router.post('/createGame', ensureUserAuthenticated, (req, res, next) => {
+    // passport.authenticate('user-login', {
+    //     successRedirect: '/users/dashboard',
+    //     failureRedirect: '/users/login',
+    //     failureFlash: true
+    // })(req, res, next);
+    const hostName = req.user.name;
+    const { name } = req.body;
+    let errors = [];
+
+    // Check required fields
+    if (!name) {
+        errors.push({ msg: 'Please fill in all fields' });
+    }
+    // Check required fields
+    if (!isValidGameName(name)) {
+        errors.push({ msg: `Invalid game name '${name}'` });
+    }
+
+    if (errors.length > 0) {
+        res.render('createGame', {
+            errors, name
+        });
+    } else {
+        // Validation passed
+        // Make sure user does not exist
+        const g = new Game({
+            host: [req.user],
+            name: name,
+            pin: Math.floor(Math.random() * 90000) + 10000, // new pin for game
+            guests: []
+        });
+        g.save()
+            .then(game => {
+                req.flash('success_msg', 'You have created the game successfully');
+                res.redirect('/dashboard');
+            })
+            .catch(err => console.log(err));
+    }
+});
+
+// Login handler
 router.post('/login', (req, res, next) => {
-    passport.authenticate('local', {
+    passport.authenticate('user-login', {
+        // successRedirect: '/users/dashboard',
         successRedirect: '/dashboard',
         failureRedirect: '/users/login',
         failureFlash: true
     })(req, res, next);
 });
 
-// Logout Handle
-router.get('/logout', (req, res)=>{
+// Logout handle
+router.get('/logout', ensureUserAuthenticated, (req, res) => {
     req.logout();
     req.flash('success_msg', 'You are logged out');
     res.redirect('/users/login');
-})
+});
+
+// Get all games for this user
+router.get('/game', ensureUserAuthenticated, (req, res) => {
+    Game.findOne({ host: req.user })
+        .then(game => {
+            if (game) {
+                const obj = { ..._.pick(game, ['name', 'pin', 'guests']) };
+                obj.guests = obj.guests.map(guest => _.pick(guest, 'name'));
+                res.send(obj);
+            }
+        })
+        .catch(err => console.log(err));
+});
+
+// Get all games for this user
+router.get('/game/:pin', ensureUserAuthenticated, (req, res) => {
+    // Find game where user is host (host must've already created)
+    Game.findOne({ host: req.user, pin: req.params.pin })
+        .then(game => {
+            if (game) {
+                res.render('gameView');
+            } else {
+                res.render('dashboard', {
+                    name: req.user.name
+                });
+            }
+        })
+        .catch(err => console.log(err));
+});
+
+// Get all games for this user
+router.get('/deleteGame/:pin', ensureUserAuthenticated, (req, res) => {
+    // Find game where user is host (host must've already created)
+    Game.deleteOne({ host: req.user, pin: req.params.pin })
+        .then(stuff => {
+            console.log(stuff);
+            req.flash('success_msg', 'You have deleted the game successfully');
+            res.redirect('/dashboard');
+        })
+        
+});
 
 
 module.exports = router;

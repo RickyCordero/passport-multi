@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
+const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const app = express();
 
@@ -11,8 +13,7 @@ const app = express();
 require('./config/passport')(passport);
 
 // DB Config
-// const db = require('./config/key').MongoURI;
-const URI = "mongodb://localhost:27017/passport-app";
+const URI = require('./config/key').MongoURI;
 
 mongoose.connect(URI, { useNewUrlParser: true })
     .then(() => console.log('MongoDB Connected...'))
@@ -21,6 +22,9 @@ mongoose.connect(URI, { useNewUrlParser: true })
 // EJS
 app.use(expressLayouts);
 app.set('view engine', 'ejs');
+
+// Expose the public folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Bodyparser
 // allows us to get data from our form using request.body
@@ -49,9 +53,18 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(cookieParser());
+
 // Routes
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
+app.use('/guest', require('./routes/guest'));
+
+// Handle non-existant routes
+app.use((req, res, next) => {
+    res.status(404);
+    res.render('error', { error: 'Not Found' });
+});
 
 const PORT = process.env.PORT || 5000;
 
