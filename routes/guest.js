@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 const passport = require('passport');
+const _ = require('lodash');
 
 const { ensureGuestAuthenticated } = require('../config/auth');
 
@@ -45,28 +45,44 @@ router.post('/join', (req, res, next) => {
     })(req, res, next);
 });
 
+// Get the current game for this guest
+router.get('/game', ensureGuestAuthenticated, (req, res) => {
+    Game.findOne({ pin: req.user.pin })
+        .then(game => {
+            if (game) {
+                const obj = { ..._.pick(game, ['name', 'pin', 'guests']) };
+                obj.guests = obj.guests.map(guest => _.pick(guest, 'name'));
+                res.send(obj);
+            } else {
+                res.send({ err: "Game not found" });
+            }
+        })
+        .catch(err => console.log(err));
+});
+
 // Leave party handler
 router.get('/leave', ensureGuestAuthenticated, (req, res) => {
-    // Game.findOne({ pin: req.user.pin })
-    //     .then(game => {
-    //         if (game) {
-    //             game.guests = game.guests.filter(g => g.name != req.user.name);
-    //             game.save()
-    //                 .then(stuff => {
-    //                     req.logout();
-    //                     req.flash('success_msg', 'You have left the game');
-    //                     res.redirect('/guest/join');
-    //                 })
-    //                 .catch(err => console.log(err));
-    //             } else {
-    //                 req.flash('error_msg', 'No such game');
-    //                 res.redirect('/dashboard');
-    //             }
-    //         })
-    //         .catch(err => console.log(err));
-    req.logout();
-    req.flash('success_msg', 'You have left the game');
-    res.redirect('/guest/join');
+    Game.findOne({ pin: req.user.pin })
+        .then(game => {
+            if (game) {
+                game.guests = game.guests.filter(g => g.name != req.user.name);
+                game.save()
+                    .then(game => {
+                        Guest.deleteOne({ name: req.user.name, pin: req.user.pin })
+                            .then(stuff => {
+                                req.logout();
+                                req.flash('success_msg', 'You have left the game');
+                                res.redirect('/guest/join');
+                            })
+                            .catch(err => console.log(err));
+                    })
+                    .catch(err => console.log(err));
+            } else {
+                req.flash('error_msg', 'No such game');
+                res.redirect('/dashboard');
+            }
+        })
+        .catch(err => console.log(err));
 });
 
 /**
