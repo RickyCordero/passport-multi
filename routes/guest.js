@@ -19,23 +19,6 @@ router.get('/register', (req, res) => {
     res.render('registerGuest');
 });
 
-// // Dashboard Page
-// router.get('/dashboard', ensureGuestAuthenticated, (req, res) => {
-//     // console.log(req);
-//     res.render('guestDashboard', {
-//         name: ""
-//     });
-// });
-
-// // Login handle
-// router.post('/login', (req, res, next) => {
-//     passport.authenticate('local', {
-//         successRedirect: '/dashboard',
-//         failureRedirect: '/users/login',
-//         failureFlash: true
-//     })(req, res, next);
-// });
-
 // Login handle
 router.post('/join', (req, res, next) => {
     passport.authenticate('guest-login', {

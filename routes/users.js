@@ -76,13 +76,6 @@ router.post('/register', (req, res) => {
     }
 });
 
-// // Dashboard Page
-// router.get('/dashboard', ensureUserAuthenticated, (req, res) => {
-//     res.render('dashboard', {
-//         name: req.user.name
-//     });
-// });
-
 // Create game
 router.get('/createGame', ensureUserAuthenticated, (req, res) => {
     res.render('createGame');
@@ -98,11 +91,6 @@ const isValidGameName = name => {
 
 // Create game handler
 router.post('/createGame', ensureUserAuthenticated, (req, res, next) => {
-    // passport.authenticate('user-login', {
-    //     successRedirect: '/users/dashboard',
-    //     failureRedirect: '/users/login',
-    //     failureFlash: true
-    // })(req, res, next);
     const hostName = req.user.name;
     const { name } = req.body;
     let errors = [];
@@ -193,7 +181,7 @@ router.get('/deleteGame/:pin', ensureUserAuthenticated, (req, res) => {
             req.flash('success_msg', 'You have deleted the game successfully');
             res.redirect('/dashboard');
         })
-        
+        .catch(err => console.log(err));
 });
 
 
